@@ -6,7 +6,7 @@ import Survey from "./Survey";
 
 StatusBar.setHidden(true);
 
-const SIZE_TITLE = 35;
+const SIZE_TITLE = 30;
 const surveysList = [{ id:1, text :"Prova 1"}, { id:2, text: "Prova 2"}];
 
 export default class SurveysList extends React.Component {
@@ -20,8 +20,23 @@ export default class SurveysList extends React.Component {
   );
 
   _keyExtractor = (item, index) => {
-    return item.id;
+    return String(index);
   };
+
+  _saveData = () => {
+    // TODO: Salvataggio dati su firebase
+    console.log("Salvataggio dati su firebase..");
+  }
+
+  _loadData = () => {
+    // TODO: Prendere dati da firebase
+    console.log("Prelevamento dati da firebase..")
+  }
+
+  componentWillMount() {
+    this.props.navigation.setParams({ addNewSurvey: this._saveData });
+    //this._loadData();   
+  }
 
   static navigationOptions = ({navigation}) => {
     return {
@@ -32,12 +47,12 @@ export default class SurveysList extends React.Component {
             <View style={styles.buttonHeaderRight}>
               {/* onPress={ () => navigation.navigate('AddSurvey', { addNewSurvey: navigation.state.params.addNewSurvey,}) */}
                 <TouchableOpacity 
-                  onPress={ () => console.log("Go to addSurvey")}>
+                  onPress={ () => 
+                  navigation.navigate('AddSurvey', { addNewSurvey: navigation.state.params.addNewSurvey})}>
                   <MaterialIcons name={"add"} size={SIZE_TITLE} color={"black"}/>
                 </TouchableOpacity>          
             </View>
-        ),
-        
+        )
     }
   }
 
@@ -49,7 +64,6 @@ export default class SurveysList extends React.Component {
           renderItem={this._generateRow}
           keyExtractor={this._keyExtractor}
         />
-
       </View>
     );
   }

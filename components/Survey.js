@@ -9,7 +9,6 @@ const DIM_ICON = 24;
 
 export default class Survey extends Component {
     render() {
-        {console.log(this.props.data)}
         return (
             <View style={styles.row}>
                 {/* onPress={this.props.onDeleteSurvey} */}

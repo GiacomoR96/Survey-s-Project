@@ -6,17 +6,19 @@ import { StatusBar } from "react-native";
 import { MaterialIcons, AntDesign } from '@expo/vector-icons';
 import SurveysList from "./components/SurveysList";
 import Statistic from "./components/Statistic";
+import AddSurvey from "./components/AddSurvey";
 import * as firebase from 'firebase';
 
 StatusBar.setHidden(true);
+const SIZE_ICON = 35;
 
 const getTabBarIcon = (navigation, focused, tintColor) => {
   const { routeName } = navigation.state;
   
   if (routeName === 'Questionari') {
-    return <AntDesign name={"form"} size={30} color={tintColor} />;
+    return <AntDesign name={"form"} size={SIZE_ICON} color={tintColor} />;
   }
-  return <MaterialIcons name={"data-usage"} size={35} color={tintColor}/>
+  return <MaterialIcons name={"data-usage"} size={SIZE_ICON} color={tintColor}/>
 };
 
 const SurveysListStack = createStackNavigator({
@@ -25,15 +27,13 @@ const SurveysListStack = createStackNavigator({
       navigationOptions: {
         headerTitle: 'Lista Questionari',
       },
-    },
-    /* Questa parte e' dedicata agli altri screen riguardanti la creazione dei nuovi questionari 
-    Details: {
-      screen: Example,
-      navigationOptions: {
-        headerTitle: 'Details',
-        headerStyle: {}
-      },
-    },*/
+  },
+  AddSurvey: {
+    screen: AddSurvey,
+    navigationOptions: {
+      headerTitle: 'Nuovo questionario'
+    }
+  }
 });
   
 const StatisticStack = createStackNavigator({
