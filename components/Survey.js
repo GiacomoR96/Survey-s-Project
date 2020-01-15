@@ -11,13 +11,11 @@ export default class Survey extends Component {
     render() {
         return (
             <View style={styles.row}>
-                {/* onPress={this.props.onDeleteSurvey} */}
-                <TouchableOpacity onPress={() => console.log("DELETE ME!")}>
+                <TouchableOpacity onPress={this.props.onDeleteSurvey}>
                     <MaterialIcons name="delete" style={styles.iconDelete} size={DIM_ICON} />
                 </TouchableOpacity>
                 <Text style={styles.text}>{this.props.data.text}</Text>
-                {/* onPress={this.props.onEditSurvey} */}
-                <TouchableOpacity onPress={() => console.log("MOD ME")}>
+                <TouchableOpacity onPress={this.props.onEditSurvey}>
                     <MaterialIcons name="chevron-right" style={styles.iconChevron} size={DIM_ICON} />
                 </TouchableOpacity>
             </View>
@@ -34,8 +32,6 @@ const styles = StyleSheet.create({
         borderColor: "blue",
         marginLeft: 10,
         marginRight: 10,
-        //borderWidth: 1,
-        //marginHorizontal: 10,
         padding: 10,
         backgroundColor: "#7CE2CE",
         alignItems: "center",

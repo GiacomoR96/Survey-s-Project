@@ -33,6 +33,16 @@ export default class SurveysList extends React.Component {
     console.log("Prelevamento dati da firebase..")
   }
 
+  _editSurvey = (item) => {
+    console.log("Propos PADRE surveyList, item : ",item);
+    console.log("Propos PADRE surveyList, MODIFICA survey!");
+  }
+
+  _delete = (item) => {
+    console.log("Propos PADRE surveyList, item : ",item);
+    console.log("Propos PADRE surveyList, ELIMINAZIONE survey!");
+  }
+
   componentWillMount() {
     this.props.navigation.setParams({ addNewSurvey: this._saveData });
     //this._loadData();   

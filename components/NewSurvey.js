@@ -17,7 +17,6 @@ const correctAnswersList = [
     {label: 'C', value: 2},
     {label: 'D', value: 3},
 ];
-selectAnswers = null;
 
 /* Example obj = {
       "Domanda": "DOMANDA N. 1",
@@ -39,10 +38,7 @@ export default class NewSurvey extends Component {
         D: null,
         esatta: null,
     }
-
-    _isSelect = (obj) => {
-        return obj.value === selectAnswers;
-    }
+    selectAnswers = null;
 
     _load = () => {
         this.props.data.domanda != null || this.props.domanda != '' ? this.setState({domanda: this.props.data.domanda}) : {};
@@ -50,17 +46,23 @@ export default class NewSurvey extends Component {
         this.props.data.B != null || this.props.B != '' ? this.setState({B: this.props.data.B}) : {};
         this.props.data.C != null || this.props.C != '' ? this.setState({C: this.props.data.C}) : {};
         this.props.data.D != null || this.props.D != '' ? this.setState({D: this.props.data.D}) : {};
-        this.props.data.esatta != null && selectAnswers == null ? this.setState({esatta: this.props.data.esatta}) : {};
+        this.props.data.esatta != null ? this.state.esatta != null ? this._setValueAnswers(this.state.esatta) : this._setValueAnswers(this.props.data.esatta) : {};
+        this.props.data.esatta != null ? this.setState({esatta: this.props.data.esatta}) : {};
+    }
+
+    _setValueAnswers = (value) => {
+        correctAnswersList.map(current => current.label==value ? this.selectAnswers = current.value : {});
     }
 
     _changeValueAnswers = (index) => {
-        selectAnswers = index;
-        let result = correctAnswersList.filter(this._isSelect);
-        this.setState({esatta: result[0].label});
+        this.selectAnswers = index;
+        let result;
+        correctAnswersList.map(current => current.value==index ? result=current.label : {});
+        this.setState({esatta: result}, () => this.props.onSaveChangeQuestion(this.state,this.props.data.id));
     }
 
     componentWillMount() {
-        this._load();        
+        this._load();
     }
 
     render() {
@@ -74,8 +76,9 @@ export default class NewSurvey extends Component {
                         style={styles.inputText}
                         onChangeText={(value) => this.setState({domanda: value})}
                         value={this.state.domanda}
+                        onEndEditing={() => this.props.onSaveChangeQuestion(this.state,this.props.data.id)}
                     />
-                    <TouchableOpacity onPress={() => console.log("DELETE SELECT SURVEY!")}>
+                    <TouchableOpacity onPress={() => this.props.onDeleteSingleQuestion(this.props.data.id)}>
                         <MaterialIcons name="delete" style={styles.iconDelete} size={DIM_ICON} />
                     </TouchableOpacity>
                 </View>
@@ -89,6 +92,7 @@ export default class NewSurvey extends Component {
                             style={styles.inputText}
                             onChangeText={(value) => this.setState({A: value})}
                             value={this.state.A}
+                            onEndEditing={() => this.props.onSaveChangeQuestion(this.state,this.props.data.id)}
                         />
                     </View>
                     <View style={[styles.question, this.state.esatta != '' && (this.state.B == null || this.state.B == '')  ? styles.isInvalid : {}]}>
@@ -100,6 +104,7 @@ export default class NewSurvey extends Component {
                             style={styles.inputText}
                             onChangeText={(value) => this.setState({B: value})}
                             value={this.state.B}
+                            onEndEditing={() => this.props.onSaveChangeQuestion(this.state,this.props.data.id)}
                         />
                     </View>
                     <View style={[styles.question, this.state.esatta != '' && (this.state.C == null || this.state.C == '')  ? styles.isInvalid : {}]}>
@@ -111,6 +116,7 @@ export default class NewSurvey extends Component {
                             style={styles.inputText}
                             onChangeText={(value) => this.setState({C: value})}
                             value={this.state.C}
+                            onEndEditing={() => this.props.onSaveChangeQuestion(this.state,this.props.data.id)}
                         />
                     </View>
                     <View style={[styles.question, this.state.esatta != '' && (this.state.D == null || this.state.D == '')  ? styles.isInvalid : {}]}>
@@ -122,6 +128,7 @@ export default class NewSurvey extends Component {
                             style={styles.inputText}
                             onChangeText={(value) => this.setState({D: value})}
                             value={this.state.D}
+                            onEndEditing={() => this.props.onSaveChangeQuestion(this.state,this.props.data.id)}
                         />
                     </View>
                 </View>
@@ -138,7 +145,7 @@ export default class NewSurvey extends Component {
                             <RadioButtonInput
                                 obj={obj}
                                 index={index}
-                                isSelected={selectAnswers === index}
+                                isSelected={this.selectAnswers === index}
                                 onPress={() => {
                                     this.state.domanda == null || this.state.domanda == '' ? 
                                     Alert.alert('Attenzione','Inserisci il testo della domanda prima di selezionare la risposta!') :
@@ -146,7 +153,7 @@ export default class NewSurvey extends Component {
                                 }}
                                 borderWidth={2}
                                 buttonInnerColor={COLOR_CORRECT_ANSWERS}
-                                buttonOuterColor={selectAnswers === index ? COLOR_CORRECT_ANSWERS : '#000'}
+                                buttonOuterColor={this.selectAnswers === index ? COLOR_CORRECT_ANSWERS : '#000'}
                                 buttonSize={30}
                                 buttonOuterSize={50}
                                 buttonStyle={{}}
