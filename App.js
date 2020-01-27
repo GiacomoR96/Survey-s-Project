@@ -12,6 +12,32 @@ import * as firebase from 'firebase';
 StatusBar.setHidden(true);
 const SIZE_ICON = 35;
 
+var firebaseConfig = {
+  /* YOUR FIREBASE CONFIGURATIONS */
+};
+
+!firebase.apps.length ? firebase.initializeApp(firebaseConfig) : null;
+
+/*
+// TODO: Add dynamics login
+_login = () => {
+  this.setState({ isLoading: true }, () =>{
+    firebase
+      .auth()
+      .signInWithEmailAndPassword(this.state.email, this.state.password)
+      .then(user => {
+        this.setState({ isLoading: false });
+        console.log("LOGIN: ",user);
+        this.props.navigation.navigate("TodoList");
+      })
+      .catch(error => {
+        this.setState({ isLoading: false, error: error.message });
+        //alert(error.message);
+      });
+  });
+};*/
+
+
 const getTabBarIcon = (navigation, focused, tintColor) => {
   const { routeName } = navigation.state;
   
@@ -29,10 +55,7 @@ const SurveysListStack = createStackNavigator({
       },
   },
   AddSurvey: {
-    screen: AddSurvey,
-    navigationOptions: {
-      headerTitle: 'Nuovo questionario'
-    }
+    screen: AddSurvey
   }
 });
   

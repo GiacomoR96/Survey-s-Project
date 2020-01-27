@@ -31,23 +31,40 @@ const correctAnswersList = [
 export default class NewSurvey extends Component {
     // TODO: Valutare se da sostituire con '' + effettuare refactoring  
     state = {
-        domanda: null,
+        Domanda: null,
         A: null,
         B: null,
         C: null,
         D: null,
-        esatta: null,
+        Esatta: null,
     }
     selectAnswers = null;
 
+    _isPresent = (value) => {
+        if(typeof value != "undefined" && typeof value != "" && value != null && value.length > 0 && value.trim().length > 0) {
+            return true;
+        }
+        return false;
+    };
+
     _load = () => {
-        this.props.data.domanda != null || this.props.domanda != '' ? this.setState({domanda: this.props.data.domanda}) : {};
-        this.props.data.A != null || this.props.A != '' ? this.setState({A: this.props.data.A}) : {};
-        this.props.data.B != null || this.props.B != '' ? this.setState({B: this.props.data.B}) : {};
-        this.props.data.C != null || this.props.C != '' ? this.setState({C: this.props.data.C}) : {};
-        this.props.data.D != null || this.props.D != '' ? this.setState({D: this.props.data.D}) : {};
-        this.props.data.esatta != null ? this.state.esatta != null ? this._setValueAnswers(this.state.esatta) : this._setValueAnswers(this.props.data.esatta) : {};
-        this.props.data.esatta != null ? this.setState({esatta: this.props.data.esatta}) : {};
+        if(this._isPresent(this.props.data.Domanda)) {
+            let domanda = this.props.data.Domanda;
+            if(domanda.includes(':')) {
+                let array = domanda.split(":");
+                domanda = array[1].trim();
+            } 
+            this.setState({Domanda: domanda});
+        }
+        this._isPresent(this.props.data.A) ? this.setState({A: this.props.data.A}) : {};
+        this._isPresent(this.props.data.B) ? this.setState({B: this.props.data.B}) : {};
+        this._isPresent(this.props.data.C) ? this.setState({C: this.props.data.C}) : {};
+        this._isPresent(this.props.data.D) ? this.setState({D: this.props.data.D}) : {};
+
+        if(this._isPresent(this.props.data.Esatta)) {
+            this._isPresent(this.state.Esatta) ? this._setValueAnswers(this.state.Esatta) : this._setValueAnswers(this.props.data.Esatta)
+            this.setState({Esatta: this.props.data.Esatta});
+        }
     }
 
     _setValueAnswers = (value) => {
@@ -58,7 +75,7 @@ export default class NewSurvey extends Component {
         this.selectAnswers = index;
         let result;
         correctAnswersList.map(current => current.value==index ? result=current.label : {});
-        this.setState({esatta: result}, () => this.props.onSaveChangeQuestion(this.state,this.props.data.id));
+        this.setState({Esatta: result}, () => this.props.onSaveChangeQuestion(this.state,this.props.data.id));
     }
 
     componentWillMount() {
@@ -74,8 +91,8 @@ export default class NewSurvey extends Component {
                         placeholder="Inserisci qui la domanda.."
                         placeholderTextColor={COLOR_TEXT}
                         style={styles.inputText}
-                        onChangeText={(value) => this.setState({domanda: value})}
-                        value={this.state.domanda}
+                        onChangeText={(value) => this.setState({Domanda: value})}
+                        value={this.state.Domanda}
                         onEndEditing={() => this.props.onSaveChangeQuestion(this.state,this.props.data.id)}
                     />
                     <TouchableOpacity onPress={() => this.props.onDeleteSingleQuestion(this.props.data.id)}>
@@ -83,7 +100,7 @@ export default class NewSurvey extends Component {
                     </TouchableOpacity>
                 </View>
                 <View>
-                    <View style={[styles.question, this.state.esatta != '' && (this.state.A == null || this.state.A == '')  ? styles.isInvalid : {}]}>
+                    <View style={[styles.question, this._isPresent(this.state.Esatta) && !(this._isPresent(this.state.A))  ? styles.isInvalid : {}]}>
                         <Text style={styles.responseText}>A: </Text>
                         <TextInput 
                             style={styles.response}
@@ -95,7 +112,7 @@ export default class NewSurvey extends Component {
                             onEndEditing={() => this.props.onSaveChangeQuestion(this.state,this.props.data.id)}
                         />
                     </View>
-                    <View style={[styles.question, this.state.esatta != '' && (this.state.B == null || this.state.B == '')  ? styles.isInvalid : {}]}>
+                    <View style={[styles.question, this._isPresent(this.state.Esatta) && !(this._isPresent(this.state.B))  ? styles.isInvalid : {}]}>
                         <Text style={styles.responseText}>B: </Text>
                         <TextInput 
                             style={styles.response}
@@ -107,7 +124,7 @@ export default class NewSurvey extends Component {
                             onEndEditing={() => this.props.onSaveChangeQuestion(this.state,this.props.data.id)}
                         />
                     </View>
-                    <View style={[styles.question, this.state.esatta != '' && (this.state.C == null || this.state.C == '')  ? styles.isInvalid : {}]}>
+                    <View style={[styles.question, this._isPresent(this.state.Esatta) && !(this._isPresent(this.state.C))  ? styles.isInvalid : {}]}>
                         <Text style={styles.responseText}>C: </Text>
                         <TextInput 
                             style={styles.response}
@@ -119,7 +136,7 @@ export default class NewSurvey extends Component {
                             onEndEditing={() => this.props.onSaveChangeQuestion(this.state,this.props.data.id)}
                         />
                     </View>
-                    <View style={[styles.question, this.state.esatta != '' && (this.state.D == null || this.state.D == '')  ? styles.isInvalid : {}]}>
+                    <View style={[styles.question, this._isPresent(this.state.Esatta) && !(this._isPresent(this.state.D))  ? styles.isInvalid : {}]}>
                         <Text style={styles.responseText}>D: </Text>
                         <TextInput 
                             style={styles.response}
@@ -136,7 +153,7 @@ export default class NewSurvey extends Component {
                 <View>
                     <View style= {{flexDirection: 'row'}}>
                         <Text style={styles.responseText}>RISPOSTA CORRETTA: </Text>
-                        <Text style={[styles.responseText, {color: COLOR_CORRECT_ANSWERS}]}>{this.state.esatta}</Text>
+                        <Text style={[styles.responseText, {color: COLOR_CORRECT_ANSWERS}]}>{this.state.Esatta}</Text>
                     </View>
                     <RadioForm style={styles.buttonAnswers} formHorizontal={true} animation={true}>
                     {
@@ -147,7 +164,7 @@ export default class NewSurvey extends Component {
                                 index={index}
                                 isSelected={this.selectAnswers === index}
                                 onPress={() => {
-                                    this.state.domanda == null || this.state.domanda == '' ? 
+                                    this.state.Domanda == null || this.state.Domanda == '' ? 
                                     Alert.alert('Attenzione','Inserisci il testo della domanda prima di selezionare la risposta!') :
                                     this._changeValueAnswers(index);                                  
                                 }}

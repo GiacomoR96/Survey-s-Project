@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Text, View, StyleSheet, StatusBar, FlatList, Button, Alert, AsyncStorage, ScrollView, ActivityIndicator } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { MaterialIcons } from '@expo/vector-icons';
+import Dialog from 'react-native-dialog';
 import NewSurvey from "./NewSurvey";
 
 StatusBar.setHidden(true);
@@ -9,13 +10,15 @@ StatusBar.setHidden(true);
 const COLOR_DEFAULT = 'blue';
 const SIZE_TITLE = 30;
 const SIZE_ICON = 35;
-const listSurvey= [ { id: 0, domanda: '', A:'', B:'', C:'', D:'', esatta:'' } ];
+const defaultListSurvey= [ { id: 0, Domanda: '', A:'', B:'', C:'', D:'', Esatta:'' } ];
 
 export default class AddSurvey extends Component {
     state = {
         listSurvey: [],
-        isLoading: false
+        isLoading: false,
+        isSaving: false
     }
+    titleSurvey = '';
 
     _generateSurvey = ({ item }) => {
         return <NewSurvey data={ item } onSaveChangeQuestion={this._saveChangeQuestion} onDeleteSingleQuestion={this._deleteSingleQuestion} />
@@ -32,12 +35,12 @@ export default class AddSurvey extends Component {
     _add = () => {
         // TODO: Da rivedere considerando this._generateID + considerare se eliminare il salvataggio qui
         let newObject = {
-            domanda: "",
+            Domanda: "",
             A: "",
             B: "",
             C: "",
             D: "",
-            esatta: ""
+            Esatta: ""
         }
         let newList = this.state.listSurvey;
         newList.push(newObject);
@@ -48,7 +51,7 @@ export default class AddSurvey extends Component {
         let newListSurvey = this.state.listSurvey;
         item.id = index;
         newListSurvey[index] = item;
-        this.setState({listSurvey: newListSurvey}, () => this._storeData(newListSurvey));
+        this.setState({listSurvey: newListSurvey});
     }
 
     _deleteSingleQuestion = (index) => {
@@ -65,17 +68,22 @@ export default class AddSurvey extends Component {
     // Funzione attraverso il quale si crea un record dinamico nel caso in cui non sono presenti record nel Database
     _checkLoad = () => {
         if(this.state.listSurvey.length === 0){
-            this.setState({listSurvey:listSurvey}, this._generateID);
+            this.setState({listSurvey:defaultListSurvey}, this._generateID);
         }
     }
 
-    async _storeData(newListSurvey) {
+    // Da utilizzare in futuro
+    async _storeDataAsync(newListSurvey) {
         console.log("Salvataggio dati con AsyncStorage...");
         try {
             await AsyncStorage.setItem('listSurvey', JSON.stringify(newListSurvey));
         } catch (error) {
             console.log('Errore nello salvataggio dei dati!');
         }
+        this.setState({ isLoading: false },this._getSizeList(newListSurvey) ? () => this._loadData() : () =>this.props.navigation.goBack());
+    }
+
+    async _storeData(newListSurvey) {
         this.setState({ isLoading: false },this._getSizeList(newListSurvey) ? () => this._loadData() : () =>this.props.navigation.goBack());
     }
 
@@ -87,22 +95,66 @@ export default class AddSurvey extends Component {
         this.setState({listSurvey: newListSurvey, isLoading: true});
     }
 
-    async _loadData() {
-        const response = await AsyncStorage.getItem('listSurvey');
-        let result = response ? await JSON.parse(response) : listSurvey;
-        if(this._getSizeList(result)) {
-            this.setState({listSurvey: result}, this._generateID);
-        } else {
-            this.setState({listSurvey: listSurvey}, this._generateID);
-        }
-    }
-
     _getSizeList = (listSurvey) => {
         if(typeof listSurvey != "undefined" && typeof listSurvey != "[]" && listSurvey != null && listSurvey.length != null && listSurvey.length > 0) {
             return true;
         }
         return false;
     };
+
+    _isPresent = (value) => {
+        if(typeof value != "undefined" && typeof value != "" && typeof value != "null" && value != null && value.trim().length > 0) {
+            return true;
+        }
+        return false;
+    };
+
+    _checkIsEmpty = () => {
+        let numberItem = 0;
+        this.state.listSurvey.forEach( element => {
+
+            if(this._isPresent(element.Domanda) && this._isPresent(element.A) && this._isPresent(element.B) && 
+                this._isPresent(element.C) && this._isPresent(element.D) && this._isPresent(element.Esatta)) {
+
+                numberItem++;
+                if(this.state.listSurvey.length == numberItem) {
+                    this.setState({isSaving: true});
+                }
+            } else {
+                Alert.alert('Attenzione','Non hai inserito correttamente tutti i campi!');
+                return;
+            }
+        });
+    }
+
+    _checkSaving = () => {
+        if(this.state.isSaving == true && this._isPresent(this.titleSurvey)) {
+            console.log("Salvataggio su Firebase!");
+        } else {
+            Alert.alert('Salvataggio dati','Non hai inserito il titolo del questionario!');
+        }
+    }
+
+    // Da utilizzare in futuro
+    async _loadDataAsync() {
+        const response = await AsyncStorage.getItem('listSurvey');
+        let result = response ? await JSON.parse(response) : listSurvey;
+        if(this._getSizeList(result)) {
+            this.setState({listSurvey: result}, this._generateID);
+        } else {
+            this.setState({listSurvey: defaultListSurvey}, this._generateID);
+        }
+    }
+
+    _loadData() {
+        let currentList = this.props.navigation.state.params.listSurvey;
+
+        if(currentList.length === 0) {
+            this.setState({listSurvey: defaultListSurvey}, this._generateID);
+        } else {
+            this.setState({listSurvey: currentList}, this._generateID);
+        }
+    }
 
     componentWillMount() {
         console.log("Ricarico..");
@@ -122,13 +174,15 @@ export default class AddSurvey extends Component {
     */
 
     static navigationOptions = ({navigation}) => {
+        const { params } = navigation.state;
         return {
+            headerTitle: params ? params.title : {},
             headerStyle: styles.headerStyle,
             headerTintColor: "black",
             headerTitleStyle: styles.headerTitleStyle,
         }
     }
-    
+
     render() {
         return (
             <View style={styles.container}>
@@ -155,12 +209,23 @@ export default class AddSurvey extends Component {
                                 <View style={styles.buttonSave}>
                                     <Button
                                         title="Salva questionario"
-                                        onPress={() => Alert.alert('Salvataggio dati','Confermi il salvataggio dei seguenti dati?')}
+                                        onPress={() => this._checkIsEmpty()}
                                     />
                                 </View>
                                 : {}
                             }
                         </ScrollView>
+                        <View>
+                            <Dialog.Container visible={this.state.isSaving}>
+                                <Dialog.Title>Salvataggio dati ☺</Dialog.Title>
+                                <Dialog.Description>
+                                    Inserisci il titolo del questionario da salvare 
+                                </Dialog.Description>
+                                <Dialog.Input onChangeText={(value) => this.titleSurvey = value} placeholder="Inserisci il titolo.."></Dialog.Input>
+                                <Dialog.Button label="Annulla" onPress={() => { this.titleSurvey = ''; this.setState({isSaving:false})}} />
+                                <Dialog.Button label="Salva" onPress={() => this._checkSaving()} />
+                            </Dialog.Container>
+                        </View>  
                     </View>
                 }
             </View>
