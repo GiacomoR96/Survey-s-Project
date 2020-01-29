@@ -2,24 +2,33 @@ import React from 'react';
 import { createStackNavigator } from 'react-navigation-stack';
 import { createBottomTabNavigator } from 'react-navigation-tabs';
 import { createAppContainer } from 'react-navigation';
-import { StatusBar } from "react-native";
+import { StatusBar, YellowBox } from "react-native";
 import { MaterialIcons, AntDesign } from '@expo/vector-icons';
 import SurveysList from "./components/SurveysList";
 import Statistic from "./components/Statistic";
 import AddSurvey from "./components/AddSurvey";
 import * as firebase from 'firebase';
 
+YellowBox.ignoreWarnings(['Setting a timer']);
+YellowBox.ignoreWarnings(['Warning']);
 StatusBar.setHidden(true);
 const SIZE_ICON = 35;
 
 var firebaseConfig = {
-  /* YOUR FIREBASE CONFIGURATIONS */
+  apiKey: "AIzaSyAmg53UHB-tdKwfFlHDo7XEDud7tKkCRFY",
+  authDomain: "survey-s-project.firebaseapp.com",
+  databaseURL: "https://survey-s-project.firebaseio.com",
+  projectId: "survey-s-project",
+  storageBucket: "survey-s-project.appspot.com",
+  messagingSenderId: "272290505001",
+  appId: "1:272290505001:web:e7e6193e892ce58e485738",
+  measurementId: "G-PQZHK09SQK"
 };
 
 !firebase.apps.length ? firebase.initializeApp(firebaseConfig) : null;
 
 /*
-// TODO: Add dynamics login
+// TODO: Add static login
 _login = () => {
   this.setState({ isLoading: true }, () =>{
     firebase
@@ -28,7 +37,7 @@ _login = () => {
       .then(user => {
         this.setState({ isLoading: false });
         console.log("LOGIN: ",user);
-        this.props.navigation.navigate("TodoList");
+        this.props.navigation.navigate("listSurvey");
       })
       .catch(error => {
         this.setState({ isLoading: false, error: error.message });
@@ -65,15 +74,7 @@ const StatisticStack = createStackNavigator({
       navigationOptions: {
         headerTitle: 'Statistica',
       },
-    },
-    /* Questa parte e' dedicata agli altri screen riguardante la gestione della statistica dei vari questionari 
-    Details: {
-      screen: Example,
-      navigationOptions: {
-        headerTitle: 'Details',
-        headerStyle: {}
-      },
-    },*/
+    }
 });
 
 const TabNavigator = createBottomTabNavigator( 
@@ -92,10 +93,7 @@ const TabNavigator = createBottomTabNavigator(
       style:{
         height: 65,
         backgroundColor: "#78f7f1"
-        //fontSize: 0,
-        //backgroundColor: "#35f3ea"
-      } 
-     
+      }
     },
   }
 );

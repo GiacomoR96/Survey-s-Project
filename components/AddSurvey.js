@@ -4,6 +4,7 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import { MaterialIcons } from '@expo/vector-icons';
 import Dialog from 'react-native-dialog';
 import NewSurvey from "./NewSurvey";
+import * as firebase from 'firebase';
 
 StatusBar.setHidden(true);
 
@@ -33,7 +34,6 @@ export default class AddSurvey extends Component {
     };
 
     _add = () => {
-        // TODO: Da rivedere considerando this._generateID + considerare se eliminare il salvataggio qui
         let newObject = {
             Domanda: "",
             A: "",
@@ -57,12 +57,7 @@ export default class AddSurvey extends Component {
     _deleteSingleQuestion = (index) => {
         let newListSurvey = this.state.listSurvey;
         newListSurvey.splice(index, 1);
-        console.log(" listSurvey Dop!0 : ", newListSurvey);
         this._storeData(newListSurvey);
-
-        // TODO : Modificare con l'aggiunta di firebase
-        //var elementRef = firebase.database().ref(this.state.path+"/"+item.id);
-        //elementRef.remove().then(this._loadData);
     };
 
     // Funzione attraverso il quale si crea un record dinamico nel caso in cui non sono presenti record nel Database
@@ -130,6 +125,30 @@ export default class AddSurvey extends Component {
     _checkSaving = () => {
         if(this.state.isSaving == true && this._isPresent(this.titleSurvey)) {
             console.log("Salvataggio su Firebase!");
+            let fileName = this.titleSurvey.trim();
+            let newListSurvey = [];
+            this.state.listSurvey.forEach( element => {
+                let obj = {
+                    A: element.A,
+                    B: element.B,
+                    C: element.C,
+                    D: element.D,
+                    Domanda: element.Domanda,
+                    Esatta: element.Esatta
+                };
+                newListSurvey.push(obj);
+
+                if(newListSurvey.length == this.state.listSurvey.length) {
+                    firebase.database().ref("QuestionsQuestionnaires").child(fileName).child("array")
+                    .push(newListSurvey, () => {
+                        this.setState({isSaving:false}, () => {
+                            var onSave = this.props.navigation.getParam("onSaveComplete");
+                            onSave();
+                            this.props.navigation.goBack();
+                        })
+                    });
+                }
+            });
         } else {
             Alert.alert('Salvataggio dati','Non hai inserito il titolo del questionario!');
         }
@@ -160,18 +179,6 @@ export default class AddSurvey extends Component {
         console.log("Ricarico..");
         this._loadData();
     }
-
-    /*
-        headLeft: (
-                <View style={styles.buttonHeaderLeft}>
-                    <TouchableOpacity 
-                      onPress={ () => 
-                        this.props.navigation.goBack(null)}>
-                      <MaterialIcons name={"arrow-back"} size={SIZE_TITLE} color={"black"}/>
-                    </TouchableOpacity>          
-                </View>
-            ), 
-    */
 
     static navigationOptions = ({navigation}) => {
         const { params } = navigation.state;
@@ -204,7 +211,7 @@ export default class AddSurvey extends Component {
                                 renderItem={this._generateSurvey}
                                 keyExtractor={this._keyExtractor}
                             />
-                            { // TODO: Inserire pulsanti nel messaggio 'Salvataggio dati' per confermare o annullare l'operazione
+                            {
                                 this._getSizeList(this.state.listSurvey) ?
                                 <View style={styles.buttonSave}>
                                     <Button

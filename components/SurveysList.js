@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View, FlatList, Image, StyleSheet, StatusBar, ActivityIndicator } from 'react-native';
+import { Text, View, FlatList, Image, StyleSheet, StatusBar, ActivityIndicator, Alert } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { MaterialIcons } from '@expo/vector-icons';
 import Survey from "./Survey";
@@ -11,7 +11,7 @@ const COLOR_DEFAULT = 'blue';
 const SIZE_TITLE = 30;
 const defaultList = [];
 const defaultTitle = "Nuovo questionario";
-let account = { email: " **YOUR EMAIL** ", password: " **YOUR PASSWORD** " };
+let account = { email: "nuovo@gmail.com", password: "pippo1234" };
 
 export default class SurveysList extends React.Component {
   state = {
@@ -41,22 +41,6 @@ export default class SurveysList extends React.Component {
     }
   }
 
-  _saveData = () => {
-    // TODO: Salvataggio dati su firebase
-    console.log("Salvataggio dati su firebase..");
-  }
-/*
-  _loadInfoUser = async () => {
-    await firebase.auth().currentUser.uid.then(result => {
-      console.log("1 - ",result);
-        this.currentUID = result;
-        console.log("2-  ",this.currentUID);
-        return true;
-      });
-    return false;
-  }
-*/
-
   _login = async () => {
     await firebase
       .auth()
@@ -72,9 +56,7 @@ export default class SurveysList extends React.Component {
 
     const currentUID = firebase.auth().currentUser.uid;
     if(currentUID){
-      // TODO : Path da modificare in futuro
       const path = this.state.isLoading ? this.state.path : "/QuestionsQuestionnaires";
-      console.log("PATH_> ",path)
       this.setState({ path: path }); 
 
       let newSurveysLists = [];
@@ -95,21 +77,51 @@ export default class SurveysList extends React.Component {
 
   }
 
+  _reloadData = () => {
+    this.setState({surveysList:defaultList}, () =>this._loadData());
+  }
+
   _editSurvey = (item) => {
-    this.props.navigation.navigate('AddSurvey', { title: item.text, listSurvey : item.array }); 
+
+    if(typeof item.array != "undefined" && typeof item.array != "[]" && typeof item.array != "null" && item.array != null && item.array.length > 0
+        && Array.isArray(item.array)) {
+
+      this.props.navigation.navigate('AddSurvey', { title: item.text, listSurvey : item.array, onSaveComplete: () =>this._reloadData()});
+    } else {
+      let ris = item[Object.keys(item)[1]];
+      let result = ris[Object.keys(ris)[0]];
+
+      this.props.navigation.navigate('AddSurvey', { title: item.text, listSurvey : result, onSaveComplete: () =>this._reloadData()}); 
+    }
   }
 
   _delete = (item) => {
-    console.log("Propos PADRE surveyList, item : ",item);
-    console.log("Propos PADRE surveyList, ELIMINAZIONE survey!");
+    let elementSelected;
+
+    if(typeof item.array != "undefined" && typeof item.array != "[]" && typeof item.array != "null" && item.array != null && item.array.length > 0
+        && Array.isArray(item.array)) {
+
+          elementSelected = item.array;
+    } else{
+      let ris = item[Object.keys(item)[1]];
+      elementSelected = ris[Object.keys(ris)[0]];
+    }
+
+    if(elementSelected.length == 0) {
+      firebase.database().ref("QuestionsQuestionnaires").child(item.text).remove().then(this._loadData());
+
+    } else {
+      Alert.alert('Errore','Non puoi eliminare un questionario popolato!\nElimina prima le domande al suo interno!');
+    }
   }
 
   componentWillMount() {
-    this.props.navigation.setParams({ addNewSurvey: this._saveData });
-    this._login();   
+    this.props.navigation.setParams({ addNewSurvey: this._saveData, onSaveComplete : () => this._reloadData() });
+    this._login();
   }
 
   static navigationOptions = ({navigation}) => {
+    var onSave = navigation.getParam("onSaveComplete");
     return {
         headerStyle: styles.headerStyle,
         headerTintColor: "black",
@@ -118,7 +130,7 @@ export default class SurveysList extends React.Component {
             <View style={styles.buttonHeaderRight}>
                 <TouchableOpacity 
                   onPress={ () => 
-                  navigation.navigate('AddSurvey', { title: defaultTitle, listSurvey: defaultList, addNewSurvey: navigation.state.params.addNewSurvey})}>
+                  navigation.navigate('AddSurvey', { title: defaultTitle, listSurvey: defaultList, addNewSurvey: navigation.state.params.addNewSurvey, onSaveComplete: onSave})}>
                   <MaterialIcons name={"add"} size={SIZE_TITLE} color={"black"}/>
                 </TouchableOpacity>          
             </View>
