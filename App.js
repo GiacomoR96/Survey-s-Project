@@ -27,26 +27,6 @@ var firebaseConfig = {
 
 !firebase.apps.length ? firebase.initializeApp(firebaseConfig) : null;
 
-/*
-// TODO: Add static login
-_login = () => {
-  this.setState({ isLoading: true }, () =>{
-    firebase
-      .auth()
-      .signInWithEmailAndPassword(this.state.email, this.state.password)
-      .then(user => {
-        this.setState({ isLoading: false });
-        console.log("LOGIN: ",user);
-        this.props.navigation.navigate("listSurvey");
-      })
-      .catch(error => {
-        this.setState({ isLoading: false, error: error.message });
-        //alert(error.message);
-      });
-  });
-};*/
-
-
 const getTabBarIcon = (navigation, focused, tintColor) => {
   const { routeName } = navigation.state;
   

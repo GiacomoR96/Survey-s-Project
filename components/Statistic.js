@@ -168,7 +168,8 @@ const styles = StyleSheet.create({
     textAlign: "center",    
     marginBottom: 40,
     marginLeft: 70,
-    fontSize: SIZE_TITLE
+    fontSize: SIZE_TITLE,
+    marginRight: 45
   },
   text: {
     color: "black",

@@ -29,7 +29,6 @@ const correctAnswersList = [
 */
 
 export default class NewSurvey extends Component {
-    // TODO: Valutare se da sostituire con '' + effettuare refactoring  
     state = {
         Domanda: null,
         A: null,

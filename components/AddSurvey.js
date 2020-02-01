@@ -11,15 +11,16 @@ StatusBar.setHidden(true);
 const COLOR_DEFAULT = 'blue';
 const SIZE_TITLE = 30;
 const SIZE_ICON = 35;
+const defaultTitle = "Nuovo questionario";
 const defaultListSurvey= [ { id: 0, Domanda: '', A:'', B:'', C:'', D:'', Esatta:'' } ];
 
 export default class AddSurvey extends Component {
     state = {
         listSurvey: [],
         isLoading: false,
-        isSaving: false
+        isSaving: false,
+        titleSurvey: ''
     }
-    titleSurvey = '';
 
     _generateSurvey = ({ item }) => {
         return <NewSurvey data={ item } onSaveChangeQuestion={this._saveChangeQuestion} onDeleteSingleQuestion={this._deleteSingleQuestion} />
@@ -59,13 +60,6 @@ export default class AddSurvey extends Component {
         newListSurvey.splice(index, 1);
         this._storeData(newListSurvey);
     };
-
-    // Funzione attraverso il quale si crea un record dinamico nel caso in cui non sono presenti record nel Database
-    _checkLoad = () => {
-        if(this.state.listSurvey.length === 0){
-            this.setState({listSurvey:defaultListSurvey}, this._generateID);
-        }
-    }
 
     // Da utilizzare in futuro
     async _storeDataAsync(newListSurvey) {
@@ -123,9 +117,9 @@ export default class AddSurvey extends Component {
     }
 
     _checkSaving = () => {
-        if(this.state.isSaving == true && this._isPresent(this.titleSurvey)) {
+        if(this.state.isSaving == true && this._isPresent(this.state.titleSurvey)) {
             console.log("Salvataggio su Firebase!");
-            let fileName = this.titleSurvey.trim();
+            let fileName = this.state.titleSurvey.trim();
             let newListSurvey = [];
             this.state.listSurvey.forEach( element => {
                 let obj = {
@@ -139,13 +133,22 @@ export default class AddSurvey extends Component {
                 newListSurvey.push(obj);
 
                 if(newListSurvey.length == this.state.listSurvey.length) {
-                    firebase.database().ref("QuestionsQuestionnaires").child(fileName).child("array")
-                    .push(newListSurvey, () => {
-                        this.setState({isSaving:false}, () => {
-                            var onSave = this.props.navigation.getParam("onSaveComplete");
-                            onSave();
-                            this.props.navigation.goBack();
-                        })
+                    firebase.database().ref("QuestionsQuestionnaires").once("value")
+                    .then((item) => {
+                        let elementArray = Object.keys(item.val())
+                        let currentTitle = this.props.navigation.state.params.title;
+                        if(this._isPresent(currentTitle) && elementArray.includes(currentTitle)) {
+                            firebase.database().ref("QuestionsQuestionnaires").child(currentTitle).remove();
+                        }
+
+                        firebase.database().ref("QuestionsQuestionnaires").child(fileName).child("array")
+                        .push(newListSurvey, () => {
+                            this.setState({isSaving:false}, () => {
+                                var onSave = this.props.navigation.getParam("onSaveComplete");
+                                onSave();
+                                this.props.navigation.goBack();
+                            })
+                        });
                     });
                 }
             });
@@ -166,6 +169,8 @@ export default class AddSurvey extends Component {
     }
 
     _loadData() {
+        let title = this.props.navigation.state.params.title;
+        this.setState({titleSurvey: title && title!=defaultTitle ? title : ''});
         let currentList = this.props.navigation.state.params.listSurvey;
 
         if(currentList.length === 0) {
@@ -205,30 +210,32 @@ export default class AddSurvey extends Component {
                                 <Text>Inserisci domanda</Text>
                             </TouchableOpacity>
                         </View>
-                        <ScrollView style={styles.scrollMenu}>
-                            <FlatList
-                                data={this.state.listSurvey}
-                                renderItem={this._generateSurvey}
-                                keyExtractor={this._keyExtractor}
-                            />
-                            {
-                                this._getSizeList(this.state.listSurvey) ?
+                        {   this._getSizeList(this.state.listSurvey) ?
+                            <ScrollView style={styles.scrollMenu}>
+                                <FlatList
+                                    data={this.state.listSurvey}
+                                    renderItem={this._generateSurvey}
+                                    keyExtractor={this._keyExtractor}
+                                />
                                 <View style={styles.buttonSave}>
                                     <Button
                                         title="Salva questionario"
                                         onPress={() => this._checkIsEmpty()}
                                     />
                                 </View>
-                                : {}
-                            }
-                        </ScrollView>
+                            </ScrollView>
+                            :
+                            <View style={styles.textBox}>
+                                <Text style={styles.text}>Questionario vuoto!</Text>
+                            </View>
+                        }
                         <View>
                             <Dialog.Container visible={this.state.isSaving}>
                                 <Dialog.Title>Salvataggio dati ☺</Dialog.Title>
                                 <Dialog.Description>
                                     Inserisci il titolo del questionario da salvare 
                                 </Dialog.Description>
-                                <Dialog.Input onChangeText={(value) => this.titleSurvey = value} placeholder="Inserisci il titolo.."></Dialog.Input>
+                                <Dialog.Input value={this.state.titleSurvey} onChangeText={ text => this.setState({titleSurvey: text})} placeholder="Inserisci il titolo.."></Dialog.Input>
                                 <Dialog.Button label="Annulla" onPress={() => { this.titleSurvey = ''; this.setState({isSaving:false})}} />
                                 <Dialog.Button label="Salva" onPress={() => this._checkSaving()} />
                             </Dialog.Container>
@@ -284,5 +291,14 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center'
+    },
+    textBox: {
+        alignItems:"center",
+        justifyContent:"center",
+        paddingTop:45
+    },
+    text: {
+        color: COLOR_DEFAULT,
+        fontSize: 20
     }
 });
